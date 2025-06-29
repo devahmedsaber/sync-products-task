@@ -93,7 +93,7 @@ Build a robust Laravel Artisan command that synchronizes product data from a pub
 
 * Clone this  Repo repository
 
-* **Add **\`\`** as a collaborator from the first commit.**
+* **Add **maher@msaaq.com** as a collaborator from the first commit.**
 
 * Submit a GitHub repository.
 
