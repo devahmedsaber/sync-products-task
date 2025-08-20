@@ -10,6 +10,7 @@ class ProcessProductJob implements ShouldQueue
 {
     use Queueable;
 
+    public $queue = 'products';
     protected array $product;
     protected int $logId;
 
