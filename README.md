@@ -7,8 +7,7 @@ This repository contains a Laravel backend task for **synchronizing products** f
 ## Table of Contents
 
 - [Requirements](#requirements)  
-- [Installation](#installation)  
-- [Configuration](#configuration)  
+- [Installation And Initialization](#installation-and-initialization)   
 - [Database Setup](#database-setup)
 - [Mail Setup](#mail-setup)  
 - [Queue Setup](#queue-setup)
@@ -33,21 +32,18 @@ This repository contains a Laravel backend task for **synchronizing products** f
 
 ---
 
-## Installation
+## Installation and Initialization
 
-- Clone the repository:
-   - git clone https://github.com/devahmedsaber/sync-products-task.git
-   - cd sync-products-task
-- Install dependencies:
-   - composer install
-     
----
+- Clone the repository and install dependencies:
+   - Run the following commands in your terminal.
+     - `git clone https://github.com/devahmedsaber/sync-products-task.git`
+     - `cd sync-products-task`
+     - `composer install`
 
-## Configuration
-
-- Initialize environment:
-   - cp .env.example .env
-   - php artisan key:generate
+- Environment:
+   - Run the following commands in your terminal.
+     - cp .env.example .env
+     - php artisan key:generate
      
 ---
 
