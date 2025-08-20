@@ -2,11 +2,13 @@
 
 namespace App\Console\Commands;
 
+use App\Notifications\SyncSummaryNotification;
 use Illuminate\Console\Command;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Bus;
 use App\Jobs\ProcessProductJob;
 use App\Models\SyncLog;
+use App\Models\User;
 
 class SyncProductsCommand extends Command
 {
@@ -56,9 +58,19 @@ class SyncProductsCommand extends Command
             ->onQueue('products')
             ->then(function () use ($syncLog) {
                 $syncLog->update(['status' => 'success']);
+                // Send notification to admin
+                $admin = User::where('email', 'admin@example.com')->first();
+                if ($admin) {
+                    $admin->notify(new SyncSummaryNotification($syncLog->fresh()));
+                }
             })
             ->catch(function () use ($syncLog) {
                 $syncLog->update(['status' => 'failed']);
+                // Send notification to admin
+                $admin = User::where('email', 'admin@example.com')->first();
+                if ($admin) {
+                    $admin->notify(new SyncSummaryNotification($syncLog->fresh()));
+                }
             })
             ->finally(function () {
                 // CleanUp
