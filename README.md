@@ -1,106 +1,161 @@
-# Laravel Backend Challenge – Advanced Product Sync with Queued Batches
+# Laravel Product Sync Task
 
-## Objective
-
-Build a robust Laravel Artisan command that synchronizes product data from a public API into a relational database using queued jobs and batch processing. The task should evaluate your ability to design scalable backend systems using Laravel’s features.
-
----
-
-## Public API: [Fake Store API](https://fakestoreapi.com/)
-
-* Endpoint: `https://fakestoreapi.com/products`
-* Method: `GET`
-* Returns a JSON array of product objects
+This repository contains a Laravel backend task for **synchronizing products** from a public API (`https://fakestoreapi.com/products`) 
+into a local database using queued jobs, batch processing, notifications, and a clean architecture with repository & service layers.  
 
 ---
 
-## Task Requirements
+## Table of Contents
 
-### 1. Fetch and Process Products
-
-* Fetch products from the public API.
-* Process them in batches.
-* Each product should be inserted or updated in the local database.
-
-### 2. Normalize Categories
-
-* Extract categories from product data.
-* Save them in a separate table.
-* Associate products to categories.
-
-### 3. Use Queued Jobs and Batching
-
-* Use Laravel jobs to process products.
-* Dispatch them using `Bus::batch()`.
-* Handle batch success and failure.
-
-### 4. Download Images
-
-* Download product images.
-* Store them locally.
-
-### 5. Log Sync Summary
-
-* Track number of products fetched, created, updated, skipped, failed.
-* Store summary in a sync logs table.
-
-### 6. Testing
-
-* Add unit or feature tests for the sync logic.
-
-### 7. Notifications
-
-* Send a summary email or log entry to the admin after sync completes or fails.
-
-### 8. Progress Bar
-
-* Display a progress bar in the console while syncing.
-
-### 9. Horizon-ready Queues
-
-* Use separate named queues suitable for Laravel Horizon.
-
-### 10. Schedule Sync Job
-
-* Schedule the sync command to run periodically using Laravel’s scheduler.
-* Ensure the schedule is defined clearly and can be enabled via `app/Console/Kernel.php`.
+- [Requirements](#requirements)  
+- [Installation](#installation)  
+- [Configuration](#configuration)  
+- [Database Setup](#database-setup)
+- [Mail Setup](#mail-setup)  
+- [Queue Setup](#queue-setup)
+- [Migrate Database And Seeding](#migrate-database-and-seeding)
+- [Running the Product Sync](#running-the-product-sync)  
+- [Testing](#testing)  
+- [Notes](#notes)  
 
 ---
 
-## Considerations
+## Requirements
 
-* Handle duplicate `external_id`s.
-* Skip products with missing fields.
-* Make the API URL configurable.
-* Ensure clean and maintainable code.
-
----
-
-## Evaluation Criteria
-
-| Area                 | Expectation                          |
-| -------------------- | ------------------------------------ |
-| Laravel Fundamentals | Artisan, Queues, Jobs, Http, Storage |
-| Code Quality         | Structure, naming, readability       |
-| Relationships        | Proper Eloquent associations         |
-| Error Handling       | Robust fallback logic and retries    |
-| Performance          | Efficient batching and chunking      |
-| Documentation        | Clear CLI/log output, clean codebase |
+- PHP >= 8.1
+- Composer  
+- MySQL
+- Laravel 12
+- Redis (for Horizon & queue processing)
+- Laravel Horizon
+- Mailtrap or any SMTP server (for notifications)  
 
 ---
 
-## Submission
+## Installation
 
-* Clone this  Repo repository
+- Clone the repository:
+   - git clone https://github.com/devahmedsaber/sync-products-task.git
+   - cd sync-products-task
+- Install dependencies and configurations:
+   - composer install
+     
+---
 
-* **Add **maher@msaaq.com** as a collaborator from the first commit.**
+## Configuration
 
-* Submit a GitHub repository.
+- Enviroment:
+   - cp .env.example .env
+   - php artisan key:generate
+     
+---
 
-* Include basic setup instructions in the README.
+## Database Setup
 
-* Mention how long the task took you.
+- Database:
+   - DB_CONNECTION=mysql
+   - DB_HOST=127.0.0.1
+   - DB_PORT=3306
+   - DB_DATABASE=sync_products
+   - DB_USERNAME=root
+   - DB_PASSWORD=your_db_password
+  
+---
 
-* Explain which parts you completed or skipped, and why.
+## Mail Setup
 
-* **Deadline: 3 calendar days from receiving the task.**
+- Mail:
+   - MAIL_MAILER=smtp
+   - MAIL_HOST=smtp.mailtrap.io
+   - MAIL_PORT=2525
+   - MAIL_USERNAME=your_mailtrap_username
+   - MAIL_PASSWORD=your_mailtrap_password
+   - MAIL_ENCRYPTION=null
+   - MAIL_FROM_ADDRESS=admin@example.com
+   - MAIL_FROM_NAME="Product Sync"
+
+---
+
+## Queue Setup
+
+- Use database queue for simple local testing:
+     - QUEUE_CONNECTION=database
+- For Horizon / Redis:
+     - QUEUE_CONNECTION=redis
+     - REDIS_HOST=127.0.0.1
+     - REDIS_PASSWORD=null
+     - REDIS_PORT=6379
+- Start Redis locally (Mac example):
+     - brew install redis
+     - brew services start redis
+  
+---
+
+## Migrate Database And Seeding
+   - php artisan migrate --seed
+     - Tables created:
+       - users (admin created)
+       - products
+       - categories
+       - sync_logs
+       - jobs (for queued jobs)
+       - job_batches (for batch processing)
+
+---
+
+## Running the Product Sync
+   - There are multiple ways to run the product sync process:
+     - Trigger via API Request:
+        - Send a POST request to: http://127.0.0.1:8000/api/sync-products
+            - Response:
+              {
+                  "message": "Product sync has been triggered successfully"
+              }
+            - Jobs will be dispatched to the queue.
+            - Use queue worker or Horizon to process them.
+    - Run Directly via Artisan Command (with Progress Bar):
+        - php artisan sync:products
+          - Runs the sync immediately.
+          - Displays a progress bar in the console.
+          - Processes all products in batches and downloads images.
+    - Using Queue Worker (Database Queue):
+       - php artisan queue:work --queue=products
+           - Picks up jobs dispatched by API or command.
+           - Processes products asynchronously.
+           - Works well for local development without Redis/Horizon.
+    - Using Laravel Horizon (Redis Queue):
+         1. Start Redis locally:
+            - brew services start redis
+         2. Run Horizon:
+            - php artisan horizon
+              - Open http://127.0.0.1:8000/horizon to monitor queued jobs.
+              - Horizon is suitable for production-level queues.
+    - Scheduled Sync (Cron / Scheduler):
+        - Add this code '$schedule->command('sync:products')->everyMinute();' to 'app/Console/Kernel.php' or 'app/routes/console.php' if you are using Laravel 12.
+        - Run the scheduler locally: php artisan schedule:work
+            - Automatically triggers the sync periodically.
+            - Combines with queue workers or Horizon for processing.
+    
+---
+
+## Testing
+   - Unit tests:
+     - php artisan test --testsuite=Unit
+       - Tests ProductService logic: create, update, skip products.
+       - Uses mocked repositories.
+   - Feature tests:
+     - php artisan test --testsuite=Feature
+       - Tests the API endpoint /api/sync-products.
+       - Verifies job dispatching and response.
+      
+---
+
+## Notes
+   - API URL is configurable via .env:
+     - FAKE_API_URL=https://fakestoreapi.com/products
+   - Duplicate external_id are handled automatically.
+   - Products with missing required fields are skipped.
+   - Images are downloaded and stored locally in storage/app/public/products.
+   - Repository & Service layer used for clean architecture.
+   - Sync logs saved in sync_logs table for summary.
+   - Notifications sent via email after each sync batch. 
