@@ -89,7 +89,7 @@ This repository contains a Laravel backend task for **synchronizing products** f
 ---
 
 ## Migrate and Seeding The Database
-   - php artisan migrate --seed
+   - php artisan migrate:fresh --seed
      - Tables created:
        - users (admin user created)
        - products
