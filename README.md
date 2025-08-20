@@ -1,7 +1,6 @@
 # Laravel Product Sync Task
 
-This repository contains a Laravel backend task for **synchronizing products** from a public API (`https://fakestoreapi.com/products`) 
-into a local database using queued jobs, batch processing, notifications, and a clean architecture with repository & service layers.  
+This repository contains a Laravel backend task for **synchronizing products** from a public API to a local database using queued jobs, batch processing, notifications, and a clean architecture with repository and service layers.  
 
 ---
 
@@ -13,7 +12,7 @@ into a local database using queued jobs, batch processing, notifications, and a 
 - [Database Setup](#database-setup)
 - [Mail Setup](#mail-setup)  
 - [Queue Setup](#queue-setup)
-- [Migrate Database And Seeding](#migrate-database-and-seeding)
+- [Migrate And Seeding The Database ](#migrate-and-seeding-the-database)
 - [Running the Product Sync](#running-the-product-sync)  
 - [Testing](#testing)  
 - [Notes](#notes)  
@@ -37,14 +36,14 @@ into a local database using queued jobs, batch processing, notifications, and a 
 - Clone the repository:
    - git clone https://github.com/devahmedsaber/sync-products-task.git
    - cd sync-products-task
-- Install dependencies and configurations:
+- Install dependencies:
    - composer install
      
 ---
 
 ## Configuration
 
-- Enviroment:
+- Initialize environment:
    - cp .env.example .env
    - php artisan key:generate
      
@@ -52,7 +51,7 @@ into a local database using queued jobs, batch processing, notifications, and a 
 
 ## Database Setup
 
-- Database:
+- Database (MYSQL):
    - DB_CONNECTION=mysql
    - DB_HOST=127.0.0.1
    - DB_PORT=3306
@@ -64,37 +63,37 @@ into a local database using queued jobs, batch processing, notifications, and a 
 
 ## Mail Setup
 
-- Mail:
+- Mail (MAILTRAP):
    - MAIL_MAILER=smtp
-   - MAIL_HOST=smtp.mailtrap.io
-   - MAIL_PORT=2525
+   - MAIL_HOST=sandbox.smtp.mailtrap.io
+   - MAIL_PORT=587
    - MAIL_USERNAME=your_mailtrap_username
    - MAIL_PASSWORD=your_mailtrap_password
    - MAIL_ENCRYPTION=null
-   - MAIL_FROM_ADDRESS=admin@example.com
-   - MAIL_FROM_NAME="Product Sync"
+   - MAIL_FROM_ADDRESS=no-reply@example.com
+   - MAIL_FROM_NAME="Sync Product"
 
 ---
 
 ## Queue Setup
 
-- Use database queue for simple local testing:
+- Use the database queue for simple local testing:
      - QUEUE_CONNECTION=database
-- For Horizon / Redis:
+- Or, for Horizon/Redis, run these commands in the terminal:
+     - brew install redis
+     - brew services start redis
+- For Horizon/Redis (update .env file):
      - QUEUE_CONNECTION=redis
      - REDIS_HOST=127.0.0.1
      - REDIS_PASSWORD=null
      - REDIS_PORT=6379
-- Start Redis locally (Mac example):
-     - brew install redis
-     - brew services start redis
   
 ---
 
-## Migrate Database And Seeding
+## Migrate and Seeding The Database
    - php artisan migrate --seed
      - Tables created:
-       - users (admin created)
+       - users (admin user created)
        - products
        - categories
        - sync_logs
@@ -104,34 +103,36 @@ into a local database using queued jobs, batch processing, notifications, and a 
 ---
 
 ## Running the Product Sync
-   - There are multiple ways to run the product sync process:
+   - There are multiple ways to run the product sync:
      - Trigger via API Request:
-        - Send a POST request to: http://127.0.0.1:8000/api/sync-products
+        - Send a POST request to: `http://127.0.0.1:8000/api/sync-products`
             - Response:
               {
                   "message": "Product sync has been triggered successfully"
               }
             - Jobs will be dispatched to the queue.
             - Use queue worker or Horizon to process them.
-    - Run Directly via Artisan Command (with Progress Bar):
+   - Run Directly via Artisan Command (with Progress Bar):
         - php artisan sync:products
           - Runs the sync immediately.
           - Displays a progress bar in the console.
           - Processes all products in batches and downloads images.
-    - Using Queue Worker (Database Queue):
+   - Using Queue Worker (Database Queue):
        - php artisan queue:work --queue=products
            - Picks up jobs dispatched by API or command.
            - Processes products asynchronously.
            - Works well for local development without Redis/Horizon.
-    - Using Laravel Horizon (Redis Queue):
-         1. Start Redis locally:
-            - brew services start redis
-         2. Run Horizon:
-            - php artisan horizon
-              - Open http://127.0.0.1:8000/horizon to monitor queued jobs.
-              - Horizon is suitable for production-level queues.
-    - Scheduled Sync (Cron / Scheduler):
-        - Add this code '$schedule->command('sync:products')->everyMinute();' to 'app/Console/Kernel.php' or 'app/routes/console.php' if you are using Laravel 12.
+   - Using Laravel Horizon (Redis Queue):
+     1. Start Redis locally:
+        - brew services start redis
+     2. Run Horizon:
+        - php artisan horizon
+            - Open `http://127.0.0.1:8000/horizon` to monitor queued jobs.
+            - Horizon is suitable for production-level queues.
+   - Scheduled Sync (via Cron/Scheduler):
+        - Add this code
+          `$schedule->command('sync:products')->everyMinute();` to app/Console/Kernel.php
+        - If you are using Laravel 12 add this code to `app/routes/console.php` instead of `app/Console/Kernel.php`.
         - Run the scheduler locally: php artisan schedule:work
             - Automatically triggers the sync periodically.
             - Combines with queue workers or Horizon for processing.
@@ -153,9 +154,9 @@ into a local database using queued jobs, batch processing, notifications, and a 
 ## Notes
    - API URL is configurable via .env:
      - FAKE_API_URL=https://fakestoreapi.com/products
-   - Duplicate external_id are handled automatically.
-   - Products with missing required fields are skipped.
+   - Duplicate external IDs are handled automatically.
+   - Products missing required fields are skipped.
    - Images are downloaded and stored locally in storage/app/public/products.
-   - Repository & Service layer used for clean architecture.
+   - Repository and Service layers used for a clean architecture.
    - Sync logs saved in sync_logs table for summary.
    - Notifications sent via email after each sync batch. 
