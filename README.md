@@ -27,7 +27,9 @@ This repository contains a Laravel backend task for **synchronizing products** f
 - Laravel 12
 - Redis (for Horizon & queue processing)
 - Laravel Horizon
-- Mailtrap or any SMTP server (for notifications)  
+- Mailtrap or any SMTP server (for notifications)
+- Postman
+- VSCode Or PHPStorm
 
 ---
 
