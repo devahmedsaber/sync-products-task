@@ -72,9 +72,6 @@ class SyncProductsCommand extends Command
                     $admin->notify(new SyncSummaryNotification($syncLog->fresh()));
                 }
             })
-            ->finally(function () {
-                // CleanUp
-            })
             ->dispatch();
 
         $this->output->progressFinish();
